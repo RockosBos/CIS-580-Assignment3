@@ -6,18 +6,19 @@ summaryList = list()
 descriptionList = list()
 inputFile = ".\CIS580_Assignment_BugLocalization\AspectJ_Dataset.txt"
 stopWordList = ["i", "me", "my", "myself", "we", "our", "ours", "ourselves", "you", "your", "yours", "yourself", "yourselves", "he", "him", "his", "himself", "she", "her", "hers", "herself", "it", "its", "itself", "they", "them", "their", "theirs", "themselves", "what", "which", "who", "whom", "this", "that", "these", "those", "am", "is", "are", "was", "were", "be", "been", "being", "have", "has", "had", "having", "do", "does", "did", "doing", "a", "an", "the", "and", "but", "if", "or", "because", "as", "until", "while", "of", "at", "by", "for", "with", "about", "against", "between", "into", "through", "during", "before", "after", "above", "below", "to", "from", "up", "down", "in", "out", "on", "off", "over", "under", "again", "further", "then", "once", "here", "there", "when", "where", "why", "how", "all", "any", "both", "each", "few", "more", "most", "other", "some", "such", "no", "nor", "not", "only", "own", "same", "so", "than", "too", "very", "s", "t", "can", "will", "just", "don", "should", "now"]
-stemList = [
 
-]
 
-def stemList(list):
-	newList = list()
+def stemList(l):
+	stemList = list()
 	for i in l:
-		item = i
-		for j in stopWordList:
-			item = i.replace(j, "")
-		newList.append(item)
-	return newList
+		stemmedLine = ""
+		words = i.split(" ")
+		stemmedWords = [porter_stemmer.stem(word) for word in words]
+		for w in stemmedWords:
+			stemmedLine = stemmedLine + " " + w
+		stemList.append(stemmedLine)
+
+	return stemList
 
 def removeStopWords(l):
 	newList = list()
@@ -36,7 +37,10 @@ with open(inputFile, 'r') as f:
 		descriptionList.append(items[3])
 
 	summaryList = removeStopWords(summaryList)
+	summaryList = stemList(summaryList)
 	descriptionList = removeStopWords(descriptionList)
+	descriptionList = stemList(descriptionList)
 
-
+for i in summaryList:
+	print(i)
 
