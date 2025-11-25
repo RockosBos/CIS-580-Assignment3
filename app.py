@@ -5,6 +5,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 import os
 from pathlib import Path
 from comment_parser import comment_parser
+import re
 
 porter_stemmer = PorterStemmer()
 # summaryList = list()
@@ -13,6 +14,7 @@ reportList = list()
 reportFileList = list()
 fileList = list()
 fileContentList = list()
+fileNames = list()
 inputFile = ".\CIS580_Assignment_BugLocalization\AspectJ_Dataset.txt"
 inputDir = ".\CIS580_Assignment_BugLocalization\sourceFile_aspectj\org.aspectj"
 stopWordList = ["i", "me", "my", "myself", "we", "our", "ours", "ourselves", "you", "your", "yours", "yourself", "yourselves", "he", "him", "his", "himself", "she", "her", "hers", "herself", "it", "its", "itself", "they", "them", "their", "theirs", "themselves", "what", "which", "who", "whom", "this", "that", "these", "those", "am", "is", "are", "was", "were", "be", "been", "being", "have", "has", "had", "having", "do", "does", "did", "doing", "a", "an", "the", "and", "but", "if", "or", "because", "as", "until", "while", "of", "at", "by", "for", "with", "about", "against", "between", "into", "through", "during", "before", "after", "above", "below", "to", "from", "up", "down", "in", "out", "on", "off", "over", "under", "again", "further", "then", "once", "here", "there", "when", "where", "why", "how", "all", "any", "both", "each", "few", "more", "most", "other", "some", "such", "no", "nor", "not", "only", "own", "same", "so", "than", "too", "very", "s", "t", "can", "will", "just", "don", "should", "now"]
@@ -70,6 +72,9 @@ tfidfResult = tfidf.fit_transform(reportList)
 list_files_recursive(inputDir)
 
 for file in fileList:
+	end = str(file).split(" ")[1]
+	beginning = str(file).rsplit('\\', 1)[0]
+	fileNames.append(beginning + "\\" + end)
 	with open(file, 'r') as f:
 		content = f.read()
 		try:
@@ -82,20 +87,25 @@ for file in fileList:
 fileContentList = removeStopWords(fileContentList)
 fileContentList = stemList(fileContentList)
 
-tfidf = TfidfVectorizer()
-tfidfFileResult = tfidf.fit_transform(fileContentList)
+tfidfFileResult = tfidf.transform(fileContentList)
+cosineOutput = cosine_similarity(tfidfResult, tfidfFileResult, dense_output=True)
 
-iterator = 0
-for i in reportFileList:
-	if(iterator != 0):
-		items = i.split(" ")
-		for j in items:
-			try:
-				j = j.replace(inputDir, "")
-				print(fileList.index(j))
-			except:
-				print("error")
-	iterator = iterator + 1
 
-# for i in fileList:
-# 	print(i)
+
+# iterator = 0
+# for i in reportFileList:
+# 	if(iterator != 0):
+# 		items = i.split(" ")
+# 		for j in items:
+# 			#try:
+# 				j = j.replace("/", "\\")
+# 				index = fileNames.index(inputDir + "\\" +  j)
+# 				print(cosine_similarity(tfidfResult))
+# 			# except Exception:
+# 			# 	print("An error Occured")
+
+	# iterator = iterator + 1
+
+with open("debug.txt", "w") as f:
+	for i in cosineOutput:
+		f.write(str(i) + "\n")
