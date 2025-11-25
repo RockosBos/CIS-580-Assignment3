@@ -5,7 +5,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 import os
 from pathlib import Path
 from comment_parser import comment_parser
-import re
+import csv
 
 porter_stemmer = PorterStemmer()
 # summaryList = list()
@@ -15,6 +15,8 @@ reportFileList = list()
 fileList = list()
 fileContentList = list()
 fileNames = list()
+ranklist = list()
+bugidList = list()
 inputFile = ".\CIS580_Assignment_BugLocalization\AspectJ_Dataset.txt"
 inputDir = ".\CIS580_Assignment_BugLocalization\sourceFile_aspectj\org.aspectj"
 stopWordList = ["i", "me", "my", "myself", "we", "our", "ours", "ourselves", "you", "your", "yours", "yourself", "yourselves", "he", "him", "his", "himself", "she", "her", "hers", "herself", "it", "its", "itself", "they", "them", "their", "theirs", "themselves", "what", "which", "who", "whom", "this", "that", "these", "those", "am", "is", "are", "was", "were", "be", "been", "being", "have", "has", "had", "having", "do", "does", "did", "doing", "a", "an", "the", "and", "but", "if", "or", "because", "as", "until", "while", "of", "at", "by", "for", "with", "about", "against", "between", "into", "through", "during", "before", "after", "above", "below", "to", "from", "up", "down", "in", "out", "on", "off", "over", "under", "again", "further", "then", "once", "here", "there", "when", "where", "why", "how", "all", "any", "both", "each", "few", "more", "most", "other", "some", "such", "no", "nor", "not", "only", "own", "same", "so", "than", "too", "very", "s", "t", "can", "will", "just", "don", "should", "now"]
@@ -60,6 +62,7 @@ with open(inputFile, 'r') as f:
 			items = l.split("\t")
 			reportList.append(items[2] + " " + items[3])
 			reportFileList.append(items[9])
+			bugidList.append(items[1])
 		headerFlag = False
 
 
@@ -90,22 +93,21 @@ fileContentList = stemList(fileContentList)
 tfidfFileResult = tfidf.transform(fileContentList)
 cosineOutput = cosine_similarity(tfidfResult, tfidfFileResult, dense_output=True)
 
+iter = 0
+for i in cosineOutput:
+	ranklist.append([i[0], bugidList[iter]])
+	iter = iter + 1
+
+sortedList = sorted(ranklist, reverse=True)
 
 
-# iterator = 0
-# for i in reportFileList:
-# 	if(iterator != 0):
-# 		items = i.split(" ")
-# 		for j in items:
-# 			#try:
-# 				j = j.replace("/", "\\")
-# 				index = fileNames.index(inputDir + "\\" +  j)
-# 				print(cosine_similarity(tfidfResult))
-# 			# except Exception:
-# 			# 	print("An error Occured")
-
-	# iterator = iterator + 1
+with open("bug_localization_ranks.csv", 'w', newline='') as f:
+	fieldNames = ['BugID', 'Rank']
+	writer = csv.DictWriter(f, fieldnames=fieldNames)
+	writer.writeheader()
+	for i in sortedList:
+		writer.writerow({'BugID':i[1], 'Rank':i[0]})
 
 with open("debug.txt", "w") as f:
-	for i in cosineOutput:
+	for i in sortedList:
 		f.write(str(i) + "\n")
