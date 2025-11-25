@@ -108,6 +108,3 @@ with open("bug_localization_ranks.csv", 'w', newline='') as f:
 	for i in sortedList:
 		writer.writerow({'BugID':i[1], 'Rank':i[0]})
 
-with open("debug.txt", "w") as f:
-	for i in sortedList:
-		f.write(str(i) + "\n")
