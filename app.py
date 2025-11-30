@@ -1,4 +1,4 @@
-import nltk, magic
+import nltk
 from nltk.stem import PorterStemmer
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
@@ -57,6 +57,7 @@ def extractComments(fileContent):
 with open(inputFile, 'r') as f:
 	lines = f.read().splitlines()
 	headerFlag = True
+	print("Reading reports from Dataset...")
 	for l in lines:
 		if(headerFlag != True):
 			items = l.split("\t")
@@ -65,15 +66,17 @@ with open(inputFile, 'r') as f:
 			bugidList.append(items[1])
 		headerFlag = False
 
-
+print("Removing Stopwords and Stemming")
 reportList = removeStopWords(reportList)
 reportList = stemList(reportList)
 
+print("Vectorizing...")
 tfidf = TfidfVectorizer()
 tfidfResult = tfidf.fit_transform(reportList)
 
 list_files_recursive(inputDir)
 
+print("Reading Project Files...")
 for file in fileList:
 	end = str(file).split(" ")[1]
 	beginning = str(file).rsplit('\\', 1)[0]
@@ -85,11 +88,13 @@ for file in fileList:
 			for i in p:
 				fileContentList.append(str(i))
 		except:
-			print("Error found when parsing")
+			print("Error found when parsing, continuing...")
 
+print("Removing Stopwords and Stemming")
 fileContentList = removeStopWords(fileContentList)
 fileContentList = stemList(fileContentList)
 
+print("Finding Cosine Similarity...")
 tfidfFileResult = tfidf.transform(fileContentList)
 cosineOutput = cosine_similarity(tfidfResult, tfidfFileResult, dense_output=True)
 
@@ -102,9 +107,12 @@ sortedList = sorted(ranklist, reverse=True)
 
 
 with open("bug_localization_ranks.csv", 'w', newline='') as f:
+	print("Writing to CSV...")
 	fieldNames = ['BugID', 'Rank']
 	writer = csv.DictWriter(f, fieldnames=fieldNames)
 	writer.writeheader()
 	for i in sortedList:
 		writer.writerow({'BugID':i[1], 'Rank':i[0]})
+
+print("Succcessfully written to CSV!")
 
